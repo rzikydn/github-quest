@@ -1,0 +1,51 @@
+name: Unlock Pair Extraordinaire Gold (48 PRs)
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  run-pair-quest:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Set Git Identity
+        run: |
+          git config user.name "rzikydn"
+          git config user.email "w1ld4n.r.w1j4y4@gmail.com"
+
+      - name: Execute 48 Co-Authored PRs
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          for i in {1..48}; do
+            BRANCH="pair-quest-$i"
+            git checkout -b "$BRANCH"
+            echo "Quest progress iteration $i of 48" >> quest.txt
+            git add quest.txt
+            
+            # Commit dengan Co-authored-by
+            git commit -m "feat: pair collaboration $i
+
+          Co-authored-by: octocat <octocat@users.noreply.github.com>"
+            
+            git push origin "$BRANCH"
+            
+            # Buat PR
+            PR_URL=$(gh pr create --title "Pair Quest #$i" --body "Coauthored commit for iteration $i" --base main --head "$BRANCH")
+            
+            # Merge PR otomatis dan hapus branch
+            gh pr merge "$PR_URL" --merge --delete-branch
+            
+            git checkout main
+            git pull origin main
+            echo "--- Selesai PR #$i ---"
+            sleep 1
+          done
