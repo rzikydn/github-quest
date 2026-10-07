@@ -25,10 +25,14 @@ jobs:
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
+          # Otomatis mendeteksi branch default (master)
+          BASE_BRANCH=$(git branch --show-current)
+          echo "Base branch is: $BASE_BRANCH"
+          
           for i in {1..48}; do
-            BRANCH="pair-quest-$i"
-            git checkout -b "$BRANCH"
-            echo "Quest progress iteration $i of 48" >> quest.txt
+            BRANCH="pair-quest-run-$i"
+            git checkout -B "$BRANCH"
+            echo "Quest progress iteration $i of 48 - $(date)" >> quest.txt
             git add quest.txt
             
             # Commit dengan Co-authored-by
@@ -36,16 +40,16 @@ jobs:
 
           Co-authored-by: octocat <octocat@users.noreply.github.com>"
             
-            git push origin "$BRANCH"
+            git push -u origin "$BRANCH" --force
             
-            # Buat PR
-            PR_URL=$(gh pr create --title "Pair Quest #$i" --body "Coauthored commit for iteration $i" --base main --head "$BRANCH")
+            # Buat PR ke branch default (master)
+            PR_URL=$(gh pr create --title "Pair Quest #$i" --body "Coauthored commit for iteration $i" --base "$BASE_BRANCH" --head "$BRANCH")
             
             # Merge PR otomatis dan hapus branch
             gh pr merge "$PR_URL" --merge --delete-branch
             
-            git checkout main
-            git pull origin main
+            git checkout "$BASE_BRANCH"
+            git pull origin "$BASE_BRANCH"
             echo "--- Selesai PR #$i ---"
             sleep 1
           done
